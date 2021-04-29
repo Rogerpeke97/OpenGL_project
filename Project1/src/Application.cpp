@@ -22,16 +22,48 @@ int x = 42;
 int& y = x;
 declares a reference to x, called y.
 the &before a var means returns the memory adress
+
+In C the strings are basically array of characters. In C++ the std::string is an advancement of that array. 
+There are some additional features with the traditional character array. The null terminated strings are basically 
+a sequence of characters, and the last element is one null character (denoted by ‘\0’). When we write some string 
+using double quotes (“…”), then it is converted into null terminated strings by the compiler.
+my_string = "This is a sam\0ple text"; //check the \0
+cout << my_string; prints => This is a sam
+c_str() Returns a pointer to an array that contains a null-terminated sequence of characters (i.e., a C-string) 
+representing the current value of the basic_string object.
+Objects can also be pointed to by pointers: Once declared, a class becomes a valid type, so it can be used as the 
+type pointed to by a pointer. For example:
+
+
+Rectangle * prect;
+
+
+is a pointer to an object of class Rectangle
 */
 static unsigned int CompileShader(unsigned int type, const std::string& source) {
     unsigned int id = glCreateShader(type);
     const char* src = source.c_str();
+    glShaderSource(id, 1, &src, nullptr);
+    glCompileShader(id);
+
+    return id;
 }
 
 
-static int CreateShader(const std::string& vertex_shader, const std::string& fragment_shader) {
+static unsigned int CreateShader(const std::string& vertex_shader, const std::string& fragment_shader) {
     unsigned int program = glCreateProgram();
     unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertex_shader);
+    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragment_shader);
+
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glLinkProgram(program);
+    glValidateProgram(program);
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    return program;
 }
 
 
@@ -82,6 +114,29 @@ int main(void)
     */
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+
+    std::string vertex_shader =
+        "#version 330 core \n"
+        "\n"
+        "layout(location = 0) in vec4 position;"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = position;\n"
+        "}\n";
+    std::string fragment_shader = 
+        "#version 330 core \n"
+        "\n"
+        "layout(location = 0) out vec4 color;"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
+        "}\n";
+
+    unsigned int shader = CreateShader(vertex_shader, fragment_shader);
+    glUseProgram(shader);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
