@@ -33,9 +33,7 @@ static std::string ParseShader(const std::string& filepath, unsigned int type) {
 
     unsigned int type_to_add;
 
-    std::string vertex_shader;
-
-    std::string fragment_shader;
+    std::string shader;
 
     while (getline(streamFile, shaders_line)) {
         // Output the text from the file
@@ -47,21 +45,12 @@ static std::string ParseShader(const std::string& filepath, unsigned int type) {
             type_to_add = GL_FRAGMENT_SHADER;
         }
         else {
-            if (type_to_add == GL_VERTEX_SHADER) {
-                vertex_shader += shaders_line + "\n";
-            }
-            else if (type_to_add == GL_FRAGMENT_SHADER) {
-                fragment_shader += shaders_line + "\n";
+            if (type_to_add == type) {
+                shader += shaders_line + "\n";
             }
         }
     }
-
-    if (type == GL_VERTEX_SHADER) {
-        return vertex_shader;
-    }
-    else if(type == GL_FRAGMENT_SHADER) {
-        return fragment_shader;
-    }
+    return shader;
 }
 
 
@@ -180,7 +169,6 @@ int main(void)
 
 
     unsigned int shader = CreateShader(ParseShader("resources/shaders/Basic.shader", GL_VERTEX_SHADER), ParseShader("resources/shaders/Basic.shader", GL_FRAGMENT_SHADER));
-    std::cout << ParseShader("resources/shaders/Basic.shader", GL_FRAGMENT_SHADER) << std::endl;
     glUseProgram(shader);
 
     /* Loop until the user closes the window */
