@@ -3,6 +3,69 @@
 #include <GLFW/glfw3native.h>
 #include <iostream>
 
+#include <fstream>
+#include <string> /*for getLine()*/
+
+/*ifstream = input file stream
+This data type represents the input file stream and is used to read information from files.
+The size_t type is meant to specify the size of something so it's natural to use it, for example, getting the length of a string and then processing each character:
+
+for (size_t i = 0, max = strlen (str); i < max; i++)
+    doSomethingWith (str[i]);
+You do have to watch out for boundary conditions of course, since it's an unsigned type. The boundary at the top end is not usually that important since the maximum 
+is usually large (though it is possible to get there). Most people just use an int for that sort of thing because they rarely have structures or arrays that get big
+enough to exceed the capacity of that int.
+The find() method will be return the string::npos if it doesn't find the special string. So you should always use the following statement to check the find() result:
+string::size_type index = str.find("value");
+if (string::npos != index)
+{
+   // Do something.
+}
+string::npos is a constant (probably -1) representing a non-position. It's returned by method find when the pattern was not found.
+
+*/
+
+
+static std::string ParseShader(const std::string& filepath, unsigned int type) {
+    std::ifstream streamFile(filepath);
+
+    std::string shaders_line;
+
+    unsigned int type_to_add;
+
+    std::string vertex_shader;
+
+    std::string fragment_shader;
+
+    while (getline(streamFile, shaders_line)) {
+        // Output the text from the file
+        if (shaders_line.find("#shader vertex") != std::string::npos) {
+            type_to_add = GL_VERTEX_SHADER;
+
+        }
+        else if(shaders_line.find("#shader fragment") != std::string::npos) {
+            type_to_add = GL_FRAGMENT_SHADER;
+        }
+        else {
+            if (type_to_add == GL_VERTEX_SHADER) {
+                vertex_shader += shaders_line + "\n";
+            }
+            else if (type_to_add == GL_FRAGMENT_SHADER) {
+                fragment_shader += shaders_line + "\n";
+            }
+        }
+    }
+
+    if (type == GL_VERTEX_SHADER) {
+        return vertex_shader;
+    }
+    else if(type == GL_FRAGMENT_SHADER) {
+        return fragment_shader;
+    }
+}
+
+
+
 /*By declaring a function member as static, you make it independent of any 
 particular object of the class. A static member function can be called even 
 if no objects of the class exist and the static functions are accessed using 
@@ -115,26 +178,9 @@ int main(void)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
 
-    std::string vertex_shader =
-        "#version 330 core \n"
-        "\n"
-        "layout(location = 0) in vec4 position;"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n";
-    std::string fragment_shader = 
-        "#version 330 core \n"
-        "\n"
-        "layout(location = 0) out vec4 color;"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
-        "}\n";
 
-    unsigned int shader = CreateShader(vertex_shader, fragment_shader);
+    unsigned int shader = CreateShader(ParseShader("resources/shaders/Basic.shader", GL_VERTEX_SHADER), ParseShader("resources/shaders/Basic.shader", GL_FRAGMENT_SHADER));
+    std::cout << ParseShader("resources/shaders/Basic.shader", GL_FRAGMENT_SHADER) << std::endl;
     glUseProgram(shader);
 
     /* Loop until the user closes the window */
@@ -151,7 +197,7 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-
+    glDeleteProgram(shader);
     glfwTerminate();
     return 0;
 }
